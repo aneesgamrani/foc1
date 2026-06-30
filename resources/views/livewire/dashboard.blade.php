@@ -1,324 +1,366 @@
 <div>
-    {{-- Welcome Hero --}}
-    <div class="welcome-card mb-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div>
-                <div class="fs-13 fw-medium" style="color:rgba(255,255,255,0.75);">Welcome back,</div>
-                <h2 class="fs-24 fw-bold mb-1" style="color:#fff;">{{ auth()->user()->name }}</h2>
-                <div class="d-flex gap-3 flex-wrap" style="color:rgba(255,255,255,0.7);">
-                    <span><i class="bi bi-shield-check me-1"></i>
-                        @foreach (auth()->user()->getRoleNames() as $role){{ ucfirst($role) }}@if(!$loop->last), @endif @endforeach
-                    </span>
-                    <span><i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}</span>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                @can('report-create')
-                <a href="{{ route('reports.index') }}" wire:navigate class="btn btn-light" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.2);color:#fff;">
-                    <i class="bi bi-plus-circle me-1"></i> New Report
-                </a>
-                @endcan
-                <a href="{{ route('profile.index') }}" wire:navigate class="btn" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:#fff;">
-                    <i class="bi bi-person-gear me-1"></i> Profile
-                </a>
-            </div>
+
+    {{-- Page Header --}}
+    <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="letter-spacing:-0.02em;">Dashboard</h3>
+            <p class="text-muted mb-0 small">
+                <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
+                @if ($developerType === 1)
+                    &nbsp;·&nbsp;<span class="text-primary fw-semibold"><i class="bi bi-building me-1"></i>Zone Developer</span>
+                @elseif ($developerType === 2)
+                    &nbsp;·&nbsp;<span class="text-success fw-semibold"><i class="bi bi-buildings me-1"></i>Zone Enterprise</span>
+                @endif
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            @can('report-create')
+            <a href="{{ route('reports.index') }}" wire:navigate class="btn btn-primary btn-sm px-3 fw-semibold">
+                <i class="bi bi-plus-lg me-1"></i>New Report
+            </a>
+            @endcan
+            <a href="{{ route('profile.index') }}" wire:navigate class="btn btn-outline-secondary btn-sm px-3 fw-semibold">
+                <i class="bi bi-person-gear me-1"></i>Profile
+            </a>
         </div>
     </div>
 
-    {{-- Stat Cards --}}
+    {{-- KPI Cards --}}
     <div class="row g-3 mb-4">
-        @can('user-list')
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-primary h-100">
-                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-                <div class="stat-value">{{ number_format($userCount ?? 0) }}</div>
-                <div class="stat-label">Total Users</div>
-                <div class="stat-trend"><i class="bi bi-person-check"></i> Registered accounts</div>
-            </div>
-        </div>
-        @endcan
-        @can('role-list')
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-purple h-100">
-                <div class="stat-icon"><i class="bi bi-shield-lock-fill"></i></div>
-                <div class="stat-value">{{ number_format($roleCount ?? 0) }}</div>
-                <div class="stat-label">Roles</div>
-                <div class="stat-trend"><i class="bi bi-diagram-3"></i> Permission groups</div>
-            </div>
-        </div>
-        @endcan
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-success h-100">
-                <div class="stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
-                <div class="stat-value">{{ number_format($totalReports) }}</div>
-                <div class="stat-label">Total Reports</div>
-                <div class="stat-trend"><i class="bi bi-check-circle"></i> {{ $submittedReports }} submitted</div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="stat-card stat-warning h-100">
-                <div class="stat-icon"><i class="bi bi-pencil-square"></i></div>
-                <div class="stat-value">{{ number_format($draftReports) }}</div>
-                <div class="stat-label">Draft Reports</div>
-                <div class="stat-trend"><i class="bi bi-hourglass"></i> Pending submission</div>
-            </div>
-        </div>
-    </div>
 
-    {{-- Charts Row --}}
-    <div class="row g-3 mb-4">
-        @if (!empty($trendLabels))
-        <div class="col-lg-8">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <span class="card-icon" style="width:30px;height:30px;border-radius:8px;background:var(--primary-subtle);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;">
-                            <i class="bi bi-graph-up"></i>
+        {{-- Total Reports --}}
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 3px solid var(--primary) !important;">
+                <div class="card-body px-4 py-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.05em; font-size:.7rem;">Total Reports</span>
+                        <span class="rounded-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:var(--primary-subtle);color:var(--primary);">
+                            <i class="bi bi-file-earmark-text-fill" style="font-size:1rem;"></i>
                         </span>
-                        Report Trend
-                    </h5>
-                    <span class="kt-badge kt-badge-primary kt-badge-pill">Last 6 months</span>
-                </div>
-                <div class="card-body">
-                    <div id="chart-report-trend" style="min-height:280px;"></div>
-                </div>
-            </div>
-        </div>
-        @endif
-        @if (count($audienceCounts) > 0)
-        <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <span class="card-icon" style="width:30px;height:30px;border-radius:8px;background:var(--purple-subtle);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:13px;">
-                            <i class="bi bi-pie-chart-fill"></i>
-                        </span>
-                        Audience
-                    </h5>
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-center">
-                    <div id="chart-audience" style="width:100%;min-height:280px;"></div>
-                </div>
-            </div>
-        </div>
-        @endif
-    </div>
-
-    {{-- Bottom Row: Report Types + Recent Reports --}}
-    @if (count($reportTypeCounts) > 0)
-    <div class="row g-3 mb-4">
-        <div class="col-lg-5">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <span class="card-icon" style="width:30px;height:30px;border-radius:8px;background:var(--success-subtle);color:var(--success);display:flex;align-items:center;justify-content:center;font-size:13px;">
-                            <i class="bi bi-bar-chart-fill"></i>
-                        </span>
-                        Reports by Type
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div id="chart-type" style="min-height:240px;"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-7">
-            <div class="card h-100">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0">
-                        <span class="card-icon" style="width:30px;height:30px;border-radius:8px;background:var(--teal-subtle);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:13px;">
-                            <i class="bi bi-clock-history"></i>
-                        </span>
-                        Recent Reports
-                    </h5>
-                    @can('report-list')
-                    <a href="{{ route('reports.index') }}" wire:navigate class="btn btn-sm btn-light-primary">
-                        View All <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                    @endcan
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Period</th>
-                                    <th>Type</th>
-                                    <th>Group</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($recentReports as $report)
-                                <tr>
-                                    <td class="fw-semibold" style="color:var(--text-heading);">{{ $report->periodLabel() }}</td>
-                                    <td>
-                                        <span class="kt-badge kt-badge-primary kt-badge-pill" style="font-size:10px;">
-                                            {{ ucfirst($report->report_type) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ ucfirst($report->audience) }}</td>
-                                    <td>
-                                        @php
-                                            $sc = match($report->status) {
-                                                'draft' => 'secondary',
-                                                'submitted' => 'success',
-                                                default => 'secondary'
-                                            };
-                                        @endphp
-                                        <span class="kt-badge kt-badge-{{ $sc }} kt-badge-pill" style="font-size:10px;">
-                                            {{ ucfirst($report->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end text-muted">{{ $report->created_at->format('d M Y') }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">No reports found.</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                    </div>
+                    <div class="fw-bold" style="font-size:1.9rem;line-height:1;letter-spacing:-0.03em;">{{ number_format($totalReports) }}</div>
+                    <div class="text-muted mt-1" style="font-size:.78rem;">
+                        <span class="text-success me-2"><i class="bi bi-check-circle-fill me-1"></i>{{ $submittedReports }} submitted</span>
                     </div>
                 </div>
             </div>
         </div>
+
+        {{-- Draft Reports --}}
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 3px solid var(--warning) !important;">
+                <div class="card-body px-4 py-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.05em; font-size:.7rem;">Draft Reports</span>
+                        <span class="rounded-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:var(--warning-subtle);color:var(--warning);">
+                            <i class="bi bi-pencil-square" style="font-size:1rem;"></i>
+                        </span>
+                    </div>
+                    <div class="fw-bold" style="font-size:1.9rem;line-height:1;letter-spacing:-0.03em;">{{ number_format($draftReports) }}</div>
+                    <div class="text-muted mt-1" style="font-size:.78rem;">
+                        <i class="bi bi-hourglass me-1"></i>Pending submission
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Third card: context-aware --}}
+        @if ($developerType === 1)
+            {{-- Zone Developer: Enterprise reports available --}}
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 3px solid var(--success) !important;">
+                    <div class="card-body px-4 py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.05em; font-size:.7rem;">Enterprise Reports</span>
+                            <span class="rounded-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:var(--success-subtle);color:var(--success);">
+                                <i class="bi bi-buildings-fill" style="font-size:1rem;"></i>
+                            </span>
+                        </div>
+                        <div class="fw-bold" style="font-size:1.9rem;line-height:1;letter-spacing:-0.03em;">{{ number_format($enterpriseReportCount ?? 0) }}</div>
+                        <div class="text-muted mt-1" style="font-size:.78rem;">
+                            <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>{{ $enterpriseSubmittedCount ?? 0 }} submitted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @elseif ($userCount !== null)
+            {{-- Admin/Manager: User count --}}
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 3px solid var(--success) !important;">
+                    <div class="card-body px-4 py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.05em; font-size:.7rem;">Total Users</span>
+                            <span class="rounded-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:var(--success-subtle);color:var(--success);">
+                                <i class="bi bi-people-fill" style="font-size:1rem;"></i>
+                            </span>
+                        </div>
+                        <div class="fw-bold" style="font-size:1.9rem;line-height:1;letter-spacing:-0.03em;">{{ number_format($userCount) }}</div>
+                        <div class="text-muted mt-1" style="font-size:.78rem;"><i class="bi bi-person-check me-1"></i>Registered accounts</div>
+                    </div>
+                </div>
+            </div>
+        @else
+            {{-- Enterprise / no extra stat: submitted count large --}}
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 3px solid var(--success) !important;">
+                    <div class="card-body px-4 py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.05em; font-size:.7rem;">Submitted</span>
+                            <span class="rounded-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:var(--success-subtle);color:var(--success);">
+                                <i class="bi bi-send-check-fill" style="font-size:1rem;"></i>
+                            </span>
+                        </div>
+                        <div class="fw-bold" style="font-size:1.9rem;line-height:1;letter-spacing:-0.03em;">{{ number_format($submittedReports) }}</div>
+                        <div class="text-muted mt-1" style="font-size:.78rem;"><i class="bi bi-check-all me-1"></i>Completed &amp; submitted</div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Fourth card: Roles (admin) or audience type count --}}
+        @if ($roleCount !== null)
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 3px solid var(--purple) !important;">
+                    <div class="card-body px-4 py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.05em; font-size:.7rem;">Roles</span>
+                            <span class="rounded-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:var(--purple-subtle);color:var(--purple);">
+                                <i class="bi bi-shield-lock-fill" style="font-size:1rem;"></i>
+                            </span>
+                        </div>
+                        <div class="fw-bold" style="font-size:1.9rem;line-height:1;letter-spacing:-0.03em;">{{ number_format($roleCount) }}</div>
+                        <div class="text-muted mt-1" style="font-size:.78rem;"><i class="bi bi-diagram-3 me-1"></i>Permission groups</div>
+                    </div>
+                </div>
+            </div>
+        @else
+            {{-- Show report type count for non-admin --}}
+            <div class="col-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 3px solid var(--teal) !important;">
+                    <div class="card-body px-4 py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.05em; font-size:.7rem;">Report Types</span>
+                            <span class="rounded-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:var(--teal-subtle);color:var(--teal);">
+                                <i class="bi bi-bar-chart-steps" style="font-size:1rem;"></i>
+                            </span>
+                        </div>
+                        <div class="fw-bold" style="font-size:1.9rem;line-height:1;letter-spacing:-0.03em;">{{ count($reportTypeCounts) }}</div>
+                        <div class="text-muted mt-1" style="font-size:.78rem;"><i class="bi bi-layers me-1"></i>Distinct types used</div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+    </div>
+
+    {{-- Charts Row --}}
+    @if (!empty($trendLabels) || count($audienceCounts) > 0)
+    <div class="row g-3 mb-4">
+
+        @if (!empty($trendLabels))
+        <div class="{{ count($audienceCounts) > 0 ? 'col-lg-8' : 'col-12' }}">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body px-4 pt-4 pb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-0">Report Trend</h6>
+                            <p class="text-muted mb-0" style="font-size:.78rem;">Reports submitted over the last 6 months</p>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold" style="font-size:.7rem;">Last 6 months</span>
+                    </div>
+                    <div id="chart-report-trend"></div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if (count($audienceCounts) > 0)
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body px-4 pt-4 pb-2">
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-0">By Audience</h6>
+                        <p class="text-muted mb-0" style="font-size:.78rem;">Developer vs Enterprise split</p>
+                    </div>
+                    <div id="chart-audience"></div>
+                    {{-- Legend --}}
+                    <div class="d-flex justify-content-center gap-3 mt-2 pb-2">
+                        @php $aColors = ['developer'=>'var(--primary)','enterprise'=>'var(--success)']; @endphp
+                        @foreach ($audienceCounts as $aud => $cnt)
+                        <div class="d-flex align-items-center gap-1" style="font-size:.78rem;">
+                            <span class="rounded-circle d-inline-block" style="width:8px;height:8px;background:{{ $aColors[$aud] ?? 'var(--purple)' }};"></span>
+                            <span class="text-muted">{{ ucfirst($aud) }}</span>
+                            <span class="fw-semibold">{{ $cnt }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
     </div>
     @endif
 
-    {{-- Quick Navigation --}}
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title">
-                <span class="card-icon" style="width:30px;height:30px;border-radius:8px;background:var(--primary-subtle);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;">
-                    <i class="bi bi-grid"></i>
-                </span>
-                Quick Access
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-2">
+    {{-- Recent Reports --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-0">
+            <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3 border-bottom">
+                <div>
+                    <h6 class="fw-bold mb-0">Recent Reports</h6>
+                    <p class="text-muted mb-0" style="font-size:.78rem;">Latest activity across all report submissions</p>
+                </div>
                 @can('report-list')
-                <div class="col-md-4 col-lg-3">
-                    <a href="{{ route('reports.index') }}" wire:navigate class="quick-card">
-                        <div class="qc-icon" style="background:var(--primary-subtle);color:var(--primary);"><i class="bi bi-file-earmark-text-fill"></i></div>
-                        <div>
-                            <div class="qc-title">Reports</div>
-                            <div class="qc-desc">SEZ report list</div>
-                        </div>
-                        <i class="bi bi-chevron-right text-muted ms-auto" style="font-size:12px;"></i>
-                    </a>
-                </div>
+                <a href="{{ route('reports.index') }}" wire:navigate class="btn btn-sm btn-outline-primary fw-semibold px-3" style="font-size:.8rem;">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
                 @endcan
-                @can('role-list')
-                <div class="col-md-4 col-lg-3">
-                    <a href="{{ route('roles.index') }}" wire:navigate class="quick-card">
-                        <div class="qc-icon" style="background:var(--purple-subtle);color:var(--purple);"><i class="bi bi-shield-lock-fill"></i></div>
-                        <div>
-                            <div class="qc-title">Roles</div>
-                            <div class="qc-desc">Manage roles & permissions</div>
-                        </div>
-                        <i class="bi bi-chevron-right text-muted ms-auto" style="font-size:12px;"></i>
-                    </a>
-                </div>
-                @endcan
-                @can('user-list')
-                <div class="col-md-4 col-lg-3">
-                    <a href="{{ route('users.index') }}" wire:navigate class="quick-card">
-                        <div class="qc-icon" style="background:var(--success-subtle);color:var(--success);"><i class="bi bi-people-fill"></i></div>
-                        <div>
-                            <div class="qc-title">Users</div>
-                            <div class="qc-desc">Manage user accounts</div>
-                        </div>
-                        <i class="bi bi-chevron-right text-muted ms-auto" style="font-size:12px;"></i>
-                    </a>
-                </div>
-                @endcan
-                @can('report-create')
-                <div class="col-md-4 col-lg-3">
-                    <a href="{{ route('reports.index') }}" wire:navigate class="quick-card">
-                        <div class="qc-icon" style="background:var(--warning-subtle);color:var(--warning);"><i class="bi bi-plus-circle-fill"></i></div>
-                        <div>
-                            <div class="qc-title">New Report</div>
-                            <div class="qc-desc">Create a new SEZ report</div>
-                        </div>
-                        <i class="bi bi-chevron-right text-muted ms-auto" style="font-size:12px;"></i>
-                    </a>
-                </div>
-                @endcan
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:.875rem;">
+                    <thead>
+                        <tr style="background:var(--kt-body-bg, transparent);">
+                            <th class="px-4 py-3 fw-semibold text-muted text-uppercase border-0" style="font-size:.7rem;letter-spacing:.05em;">Period</th>
+                            <th class="py-3 fw-semibold text-muted text-uppercase border-0" style="font-size:.7rem;letter-spacing:.05em;">Audience</th>
+                            <th class="py-3 fw-semibold text-muted text-uppercase border-0" style="font-size:.7rem;letter-spacing:.05em;">Type</th>
+                            @if ($userCount !== null)
+                            <th class="py-3 fw-semibold text-muted text-uppercase border-0" style="font-size:.7rem;letter-spacing:.05em;">Owner</th>
+                            @endif
+                            <th class="py-3 fw-semibold text-muted text-uppercase border-0" style="font-size:.7rem;letter-spacing:.05em;">Status</th>
+                            <th class="py-3 fw-semibold text-muted text-uppercase border-0 text-end pe-4" style="font-size:.7rem;letter-spacing:.05em;">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($recentReports as $report)
+                        <tr>
+                            <td class="px-4 py-3 fw-semibold" style="color:var(--text-heading,inherit);">
+                                <a href="{{ route('reports.show', $report) }}" wire:navigate class="text-decoration-none text-inherit stretched-link-inner">
+                                    {{ $report->periodLabel() }}
+                                </a>
+                            </td>
+                            <td class="py-3">
+                                @if ($report->audience === 'developer')
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:.7rem;">Developer</span>
+                                @else
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.7rem;">Enterprise</span>
+                                @endif
+                            </td>
+                            <td class="py-3 text-muted" style="font-size:.82rem;">{{ ucfirst($report->report_type) }}</td>
+                            @if ($userCount !== null)
+                            <td class="py-3 text-muted" style="font-size:.82rem;">{{ $report->user?->name ?? '—' }}</td>
+                            @endif
+                            <td class="py-3">
+                                @if ($report->status === 'submitted')
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.7rem;"><i class="bi bi-check-circle-fill me-1"></i>Submitted</span>
+                                @else
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:.7rem;"><i class="bi bi-pencil me-1"></i>Draft</span>
+                                @endif
+                            </td>
+                            <td class="py-3 pe-4 text-muted text-end" style="font-size:.78rem;">{{ $report->created_at->format('d M Y') }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox d-block mb-2 fs-3 text-secondary"></i>
+                                No reports found yet.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+
+    {{-- Quick Nav --}}
+    <div class="d-flex flex-wrap gap-2">
+        @can('report-list')
+        <a href="{{ route('reports.index') }}" wire:navigate class="d-flex align-items-center gap-2 px-3 py-2 rounded-2 text-decoration-none fw-semibold border" style="font-size:.82rem;background:var(--bs-body-bg);color:var(--text-heading,inherit);transition:all .15s;">
+            <i class="bi bi-file-earmark-text" style="color:var(--primary);"></i>Reports
+        </a>
+        @endcan
+        @can('user-list')
+        <a href="{{ route('users.index') }}" wire:navigate class="d-flex align-items-center gap-2 px-3 py-2 rounded-2 text-decoration-none fw-semibold border" style="font-size:.82rem;background:var(--bs-body-bg);color:var(--text-heading,inherit);transition:all .15s;">
+            <i class="bi bi-people" style="color:var(--success);"></i>Users
+        </a>
+        @endcan
+        @can('role-list')
+        <a href="{{ route('roles.index') }}" wire:navigate class="d-flex align-items-center gap-2 px-3 py-2 rounded-2 text-decoration-none fw-semibold border" style="font-size:.82rem;background:var(--bs-body-bg);color:var(--text-heading,inherit);transition:all .15s;">
+            <i class="bi bi-shield-lock" style="color:var(--purple);"></i>Roles
+        </a>
+        @endcan
+        <a href="{{ route('profile.index') }}" wire:navigate class="d-flex align-items-center gap-2 px-3 py-2 rounded-2 text-decoration-none fw-semibold border" style="font-size:.82rem;background:var(--bs-body-bg);color:var(--text-heading,inherit);transition:all .15s;">
+            <i class="bi bi-person-gear" style="color:var(--warning);"></i>Profile
+        </a>
+    </div>
+
 </div>
 
 @push('scripts')
 <script>
-document.addEventListener('livewire:navigated', function() {
-    const getCS = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-
-    var colors = {
-        primary: getCS('--primary') || '#2563EB',
-        success: getCS('--success') || '#059669',
-        warning: getCS('--warning') || '#D97706',
-        purple: getCS('--purple') || '#7C3AED',
-        teal: getCS('--teal') || '#0D9488',
-        danger: getCS('--danger') || '#DC2626',
-    };
+document.addEventListener('livewire:navigated', function () {
+    const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    const labelColor = isDark ? '#8b95a5' : '#6b7280';
 
     @if (!empty($trendLabels))
-    var trendEl = document.querySelector('#chart-report-trend');
-    if (trendEl && !trendEl.hasChildNodes()) {
-        new ApexCharts(trendEl, {
-            chart: { type: 'area', height: 280, toolbar: { show: false } },
+    (function () {
+        var el = document.querySelector('#chart-report-trend');
+        if (!el || el.hasChildNodes()) return;
+        new ApexCharts(el, {
+            chart: { type: 'area', height: 240, toolbar: { show: false }, background: 'transparent', sparkline: { enabled: false } },
             series: [{ name: 'Reports', data: @json($trendValues) }],
-            xaxis: { categories: @json($trendLabels), axisBorder: { show: false }, axisTicks: { show: false } },
-            colors: [colors.primary],
-            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.02 } },
-            stroke: { curve: 'smooth', width: 2.5 },
+            xaxis: {
+                categories: @json($trendLabels),
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: { style: { colors: labelColor, fontSize: '11px' } },
+            },
+            yaxis: {
+                min: 0,
+                forceNiceScale: true,
+                labels: { style: { colors: labelColor, fontSize: '11px' } },
+            },
+            colors: ['#2563EB'],
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.25, opacityTo: 0.02, stops: [0, 100] } },
+            stroke: { curve: 'smooth', width: 2 },
             dataLabels: { enabled: false },
-            markers: { size: 4, strokeColors: '#fff', strokeWidth: 2, hover: { size: 6 } },
-            grid: { borderColor: 'var(--border)', strokeDashArray: 4 },
+            markers: { size: 4, colors: ['#2563EB'], strokeColors: isDark ? '#1e2330' : '#fff', strokeWidth: 2, hover: { size: 6 } },
+            grid: { borderColor: gridColor, strokeDashArray: 4, padding: { left: 4, right: 4 } },
+            tooltip: { theme: isDark ? 'dark' : 'light' },
             legend: { show: false },
-            yaxis: { min: 0, forceNiceScale: true, labels: { style: { colors: 'var(--text-muted)', fontSize: '11px' } } },
-            tooltip: { theme: 'light', x: { format: 'MMM yyyy' } },
         }).render();
-    }
+    })();
     @endif
 
     @if (count($audienceCounts) > 0)
-    var audienceEl = document.querySelector('#chart-audience');
-    if (audienceEl && !audienceEl.hasChildNodes()) {
-        new ApexCharts(audienceEl, {
-            chart: { type: 'donut', height: 280, background: 'transparent' },
+    (function () {
+        var el = document.querySelector('#chart-audience');
+        if (!el || el.hasChildNodes()) return;
+        new ApexCharts(el, {
+            chart: { type: 'donut', height: 200, background: 'transparent' },
             series: @json(array_values(collect($audienceCounts)->toArray())),
-            labels: @json(array_keys(collect($audienceCounts)->toArray())),
-            colors: [colors.primary, colors.success, colors.purple],
-            legend: { position: 'bottom', fontSize: '12px', labels: { colors: 'var(--text-muted)' } },
-            plotOptions: { pie: { donut: { size: '62%', labels: { show: true, total: { show: true, fontSize: '14px', fontWeight: 600, color: 'var(--text-heading)' } } } } },
-            dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 600 } },
+            labels: @json(array_map('ucfirst', array_keys(collect($audienceCounts)->toArray()))),
+            colors: ['#2563EB', '#059669', '#7C3AED'],
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '65%',
+                        labels: {
+                            show: true,
+                            total: { show: true, label: 'Total', fontSize: '12px', fontWeight: 600, color: labelColor, formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0) },
+                            value: { fontSize: '18px', fontWeight: 700, color: isDark ? '#e2e8f0' : '#111827' },
+                        }
+                    }
+                }
+            },
+            dataLabels: { enabled: false },
             stroke: { width: 0 },
-            tooltip: { theme: 'light' },
-        }).render();
-    }
-    @endif
-
-    @if (count($reportTypeCounts) > 0)
-    var typeEl = document.querySelector('#chart-type');
-    if (typeEl && !typeEl.hasChildNodes()) {
-        new ApexCharts(typeEl, {
-            chart: { type: 'bar', height: 240, toolbar: { show: false } },
-            series: [{ name: 'Reports', data: @json(array_values(collect($reportTypeCounts)->toArray())) }],
-            xaxis: { categories: @json(array_keys(collect($reportTypeCounts)->toArray())), labels: { style: { colors: 'var(--text-muted)', fontSize: '11px' } } },
-            colors: [colors.teal],
-            plotOptions: { bar: { borderRadius: 6, horizontal: false, columnWidth: '55%' } },
-            dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 600 }, offsetY: -4 },
-            grid: { borderColor: 'var(--border)', strokeDashArray: 4 },
             legend: { show: false },
-            yaxis: { labels: { style: { colors: 'var(--text-muted)', fontSize: '11px' } } },
-            tooltip: { theme: 'light' },
+            tooltip: { theme: isDark ? 'dark' : 'light' },
         }).render();
-    }
+    })();
     @endif
 });
 </script>

@@ -14,6 +14,7 @@ class Dashboard extends Component
     public function render()
     {
         $user = auth()->user();
+        $developerType = (int) ($user->developer_type ?? 0);
 
         $canViewAllUsers = $user->can('user-list');
         $canViewAllRoles = $user->can('role-list');
@@ -22,9 +23,9 @@ class Dashboard extends Component
         $userCount = $canViewAllUsers ? User::count() : null;
         $roleCount = $canViewAllRoles ? Role::count() : null;
 
+        // Base report query — scoped to own reports unless admin/manager
         $reportQuery = Report::query();
-
-        if (! $canViewReports) {
+        if (!$canViewReports) {
             $reportQuery->where('user_id', $user->id);
         }
 
@@ -32,6 +33,16 @@ class Dashboard extends Component
         $draftReports = (clone $reportQuery)->where('status', Report::STATUS_DRAFT)->count();
         $submittedReports = (clone $reportQuery)->where('status', Report::STATUS_SUBMITTED)->count();
 
+        // For Zone Developer: count enterprise reports available to aggregate
+        $enterpriseReportCount = null;
+        $enterpriseSubmittedCount = null;
+        if ($developerType === 1) {
+            $entQuery = Report::whereIn('user_id', User::where('developer_type', 2)->select('id'));
+            $enterpriseReportCount = (clone $entQuery)->count();
+            $enterpriseSubmittedCount = (clone $entQuery)->where('status', Report::STATUS_SUBMITTED)->count();
+        }
+
+        // Report type breakdown
         $reportTypeCounts = (clone $reportQuery)
             ->selectRaw('report_type, COUNT(*) as total')
             ->groupBy('report_type')
@@ -42,6 +53,7 @@ class Dashboard extends Component
             ->groupBy('audience')
             ->pluck('total', 'audience');
 
+        // 6-month trend
         $dateFormat = config('database.default') === 'pgsql'
             ? "TO_CHAR(created_at, 'YYYY-MM')"
             : "DATE_FORMAT(created_at, '%Y-%m')";
@@ -56,7 +68,6 @@ class Dashboard extends Component
 
         $trendLabels = [];
         $trendValues = [];
-
         foreach (range(5, 0) as $monthsBack) {
             $month = now()->subMonths($monthsBack);
             $key = $month->format('Y-m');
@@ -67,15 +78,19 @@ class Dashboard extends Component
         $recentReports = (clone $reportQuery)
             ->with('user')
             ->latest('id')
-            ->limit(7)
+            ->limit(8)
             ->get();
 
         return view('livewire.dashboard', [
+            'user' => $user,
+            'developerType' => $developerType,
             'userCount' => $userCount,
             'roleCount' => $roleCount,
             'totalReports' => $totalReports,
             'draftReports' => $draftReports,
             'submittedReports' => $submittedReports,
+            'enterpriseReportCount' => $enterpriseReportCount,
+            'enterpriseSubmittedCount' => $enterpriseSubmittedCount,
             'reportTypeCounts' => $reportTypeCounts,
             'audienceCounts' => $audienceCounts,
             'trendLabels' => $trendLabels,
