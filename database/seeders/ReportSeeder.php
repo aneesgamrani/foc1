@@ -10,13 +10,16 @@ class ReportSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::query()->first();
+        $developer = User::where('developer_type', 1)->first();
+        $enterprise = User::where('developer_type', 2)->first();
 
-        if (! $user) {
+        if (!$developer || !$enterprise) {
+            $this->command->warn('UserSeeder must run before ReportSeeder — no typed users found.');
             return;
         }
 
-        $seedItems = [
+        // Developer reports
+        foreach ([
             [
                 'audience' => Report::AUDIENCE_DEVELOPER,
                 'report_type' => Report::TYPE_MONTHLY,
@@ -35,6 +38,15 @@ class ReportSeeder extends Seeder
                 'report_year' => (int) now()->year,
                 'status' => Report::STATUS_DRAFT,
             ],
+        ] as $item) {
+            Report::updateOrCreate(
+                ['user_id' => $developer->id, 'audience' => $item['audience'], 'report_type' => $item['report_type'], 'report_year' => $item['report_year'], 'report_month' => $item['report_month'], 'report_quarter' => $item['report_quarter'], 'biannual_half' => $item['biannual_half']],
+                $item + ['user_id' => $developer->id]
+            );
+        }
+
+        // Enterprise reports
+        foreach ([
             [
                 'audience' => Report::AUDIENCE_ENTERPRISE,
                 'report_type' => Report::TYPE_BIANNUAL,
@@ -53,20 +65,11 @@ class ReportSeeder extends Seeder
                 'report_year' => (int) now()->year,
                 'status' => Report::STATUS_DRAFT,
             ],
-        ];
-
-        foreach ($seedItems as $seedItem) {
-            Report::query()->updateOrCreate([
-                'user_id' => $user->id,
-                'audience' => $seedItem['audience'],
-                'report_type' => $seedItem['report_type'],
-                'report_year' => $seedItem['report_year'],
-                'report_month' => $seedItem['report_month'],
-                'report_quarter' => $seedItem['report_quarter'],
-                'biannual_half' => $seedItem['biannual_half'],
-            ], $seedItem + [
-                'user_id' => $user->id,
-            ]);
+        ] as $item) {
+            Report::updateOrCreate(
+                ['user_id' => $enterprise->id, 'audience' => $item['audience'], 'report_type' => $item['report_type'], 'report_year' => $item['report_year'], 'report_month' => $item['report_month'], 'report_quarter' => $item['report_quarter'], 'biannual_half' => $item['biannual_half']],
+                $item + ['user_id' => $enterprise->id]
+            );
         }
     }
 }
