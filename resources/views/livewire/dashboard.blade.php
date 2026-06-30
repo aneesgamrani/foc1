@@ -3,7 +3,12 @@
     {{-- Page Header --}}
     <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
         <div>
-            <h3 class="fw-bold mb-1" style="letter-spacing:-0.02em;">Dashboard</h3>
+            <h3 class="fw-bold mb-1" style="letter-spacing:-0.02em;">
+                Welcome, {{ $user->name }}
+                @if ($user->company_name)
+                    <span class="text-muted fw-normal" style="font-size:1rem;">&nbsp;·&nbsp;{{ $user->company_name }}</span>
+                @endif
+            </h3>
             <p class="text-muted mb-0 small">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
                 @if ($developerType === 1)
