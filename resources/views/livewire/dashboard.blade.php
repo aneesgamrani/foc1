@@ -237,7 +237,7 @@
                 @endcan
                 @can('report-create')
                 <div class="col-md-4 col-lg-3">
-                    <a href="{{ route('reports.create') }}" wire:navigate class="quick-card">
+                    <a href="{{ route('reports.index') }}" wire:navigate class="quick-card">
                         <div class="qc-icon" style="background:var(--warning-subtle);color:var(--warning);"><i class="bi bi-plus-circle-fill"></i></div>
                         <div>
                             <div class="qc-title">New Report</div>

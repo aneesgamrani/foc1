@@ -59,7 +59,7 @@ class ReportWorkspace extends Component
         }
 
         $row = [];
-        foreach ($field['columns'] as $col) {
+        foreach ($field['columns'] ?? [] as $col) {
             $row[$col['name']] = '';
         }
 
@@ -76,6 +76,11 @@ class ReportWorkspace extends Component
 
     public function saveSection(): void
     {
+        if ($this->ownershipError || $this->report->user_id !== auth()->id()) {
+            $this->dispatch('notify', type: 'error', message: 'Unauthorized.');
+            return;
+        }
+
         if ($this->report->status === Report::STATUS_SUBMITTED) {
             $this->dispatch('notify', type: 'error', message: 'Submitted report cannot be edited.');
             return;
@@ -117,6 +122,11 @@ class ReportWorkspace extends Component
 
     public function submit(): void
     {
+        if ($this->ownershipError || $this->report->user_id !== auth()->id()) {
+            $this->dispatch('notify', type: 'error', message: 'Unauthorized.');
+            return;
+        }
+
         if ($this->report->status === Report::STATUS_SUBMITTED) {
             $this->dispatch('notify', type: 'info', message: 'Report already submitted.');
             return;

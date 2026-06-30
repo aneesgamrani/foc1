@@ -61,11 +61,8 @@ class Dashboard extends Component
             $month = now()->subMonths($monthsBack);
             $key = $month->format('Y-m');
             $trendLabels[] = $month->format('M Y');
-            $trendValues[] = (int) ($trendRows[$key]->total ?? 0);
+            $trendValues[] = (int) ($trendRows[$key]?->total ?? 0);
         }
-
-        $trendLabels[] = now()->format('M Y');
-        $trendValues[] = (int) ($trendRows[now()->format('Y-m')]->total ?? 0);
 
         $recentReports = (clone $reportQuery)
             ->with('user')
