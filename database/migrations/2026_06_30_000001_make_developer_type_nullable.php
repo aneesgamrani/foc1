@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->integer('developer_type')->nullable()->comment('1: Zone Developer, 2: Enterprise Developer, null: admin/manager')->after('company_logo');
+            $table->integer('developer_type')->nullable()->change();
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('developer_type');
+            $table->integer('developer_type')->nullable(false)->default(1)->change();
         });
     }
 };
