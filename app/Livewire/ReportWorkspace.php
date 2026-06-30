@@ -272,6 +272,16 @@ class ReportWorkspace extends Component
 
     public function saveSection(): void
     {
+        if ($this->ownershipError || $this->report->user_id !== auth()->id()) {
+            $this->dispatch('notify', type: 'error', message: 'Unauthorized.');
+            return;
+        }
+
+        if ($this->activeSectionKey === 'developer_enterprise_verification') {
+            $this->saveEnterpriseVerification();
+            return;
+        }
+
         if ($this->report->status === Report::STATUS_SUBMITTED) {
             $this->dispatch('notify', type: 'error', message: 'Submitted report cannot be edited.');
             return;
