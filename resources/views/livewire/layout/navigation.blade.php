@@ -132,8 +132,8 @@
                     </div>
                     @can('report-create')
                     <div class="kt-menu-item">
-                        <a href="{{ route('reports.create') }}" wire:navigate
-                           class="kt-menu-link {{ request()->routeIs('reports.create') ? 'active' : '' }}">
+                        <a href="{{ route('reports.index') }}" wire:navigate
+                           class="kt-menu-link {{ request()->routeIs('reports.index') ? 'active' : '' }}">
                             <span class="menu-icon"><i class="bi bi-plus-circle"></i></span>
                             <span class="menu-title">New Report</span>
                         </a>

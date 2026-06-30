@@ -65,8 +65,8 @@ class Profile extends Component
             $data['company_logo'] = $this->company_logo->store('company-logos', 'public');
         }
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+        if ($this->email !== $user->email) {
+            $data['email_verified_at'] = null;
         }
 
         if (!empty($this->password)) {
